@@ -1,0 +1,21 @@
+# Python environment
+venv/
+env/
+pyvenv.cfg
+fastapivenv/
+# Python cache files
+__pycache__/
+*.py[cod]
+
+# Environment variables
+.env
+
+# Routers cache (optional, can be covered by __pycache__ already)
+routers/__pycache__/
+
+# IDE/editor specific files (optional but useful)
+.vscode/
+.idea/
+*.iml
+
+
