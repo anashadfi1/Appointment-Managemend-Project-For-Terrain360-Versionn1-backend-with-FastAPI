@@ -15,23 +15,16 @@ class StateEnum(str,Enum):
     passed="passed"
     actuallypassing="actuallypassing"
 
-# class User(Base):
-#     __tablename__ = "Agents"
 
-#     id = Column(Integer, primary_key=True, index=True)
-#     username = Column(String(50), unique=True, index=True, nullable=False)
-#     password = Column(String(255), nullable=False)
-#     email = Column(String(255), unique=True, index=True, nullable=False)
-#     description = Column(String(255), nullable=True)
-#     role = Column(SQLEnum(RoleEnum), nullable=False)
-#     lastmodificationtine = Column(DateTime, nullable=False)
-#     maxchatsessions = Column(Integer, nullable=True)
 
 
 class Agent(Base):
     __tablename__ = "Agents"
 
     AgentID = Column(Integer, primary_key=True, autoincrement=True)
+    UserName = Column(String(255), nullable=True, unique=True)
+    Email = Column(String(50), nullable=True, unique=True)
+    Password = Column(String(255), nullable=False) 
     Record = Column(Boolean, nullable=False)
     MaxChatSessions = Column(Integer, nullable=False)
     Deleted = Column(Boolean, nullable=False)
@@ -39,23 +32,24 @@ class Agent(Base):
     LastModificationTime = Column(DateTime, nullable=False)
     SoftphoneTrace = Column(Boolean, nullable=False)
     RecordStereo = Column(Boolean, nullable=False)
-    Email = Column(String(50), nullable=True)
-    UserName = Column(String(255), nullable=True)
+
+        
 
     def __repr__(self):
         return f"<Agent(AgentID={self.AgentID}, Email={self.Email}, UserName={self.UserName})>"
 
-    # appointment = relationship("Appointment", back_populates="user", cascade="all, delete-orphan")
+    # appointment = relationship("Appointment", back_populates="Agents", cascade="all, delete-orphan")
 
 class Appointment(Base):
-    __tablename__ = "appointment"
+    __tablename__ = "Statistic_WebInterview"
+    __table_args__ = {"schema": "dbo"} 
 
-    id = Column(Integer, primary_key=True, index=True)
-    date = Column(Date, nullable=False)
-    hour = Column(Integer, nullable=False)
-    minute = Column(Integer, nullable=False) 
-    state = Column(SQLEnum(RoleEnum),nullable=False)
-    description =  Column(String, nullable=False)
-    user_id = Column(Integer, ForeignKey("user.id"), nullable=True)
+    WebInterviewId = Column(Integer, primary_key=True, index=True)
+    StartTime = Column(DateTime, nullable=True)
+    EndTime = Column(DateTime, nullable=True)
+
+    # Optional: you can map "LastState" if you want a state-like field
+    LastState = Column(Integer, nullable=True)
+
     # user = relationship("User", back_populates="appointment")
 

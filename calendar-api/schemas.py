@@ -23,24 +23,12 @@ class StateEnum(str,Enum):
 
 # Base schema (shared)
 class AgentBase(BaseModel):
-    Email: Optional[EmailStr] = None
     UserName: Optional[str] = None
+    Email: Optional[EmailStr] = None
 
-
-# Schema for creating a new Agent
-class AgentCreate(AgentBase):
-    Record: bool
-    MaxChatSessions: int
-    Deleted: bool
-    CreationTime: datetime
-    LastModificationTime: datetime
-    SoftphoneTrace: bool
-    RecordStereo: bool
-
-
-# Schema for reading Agent data (includes AgentID instead of UserID)
+#Agents schemas
 class AgentRead(AgentBase):
-    AgentID: int   # ✅ FIXED: was UserID before
+    AgentID: int
     Record: bool
     MaxChatSessions: int
     Deleted: bool
@@ -50,40 +38,38 @@ class AgentRead(AgentBase):
     RecordStereo: bool
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
-# appointments schemas
+# 🔑 Login response schema
+class LoginResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    agent: AgentRead
+    
+
+
+# Base schema (shared properties)
 class AppointmentBase(BaseModel):
-    date: date
-    hour: int
-    minute: int
+    StartTime: datetime
+    EndTime: datetime
+    state: StateEnum
     description: str
+    user_id: Optional[int] = None
 
-class AppointmentCreate(AppointmentBase):
-    user_id: Optional[int]
 
-class Appointment(AppointmentBase):
+
+# For updating existing appointment (all fields optional)
+class AppointmentUpdate(BaseModel):
+    StartTime: Optional[datetime] = None
+    EndTime: Optional[datetime] = None
+    state: Optional[StateEnum] = None
+    description: Optional[str] = None
+    user_id: Optional[int] = None
+
+
+# For response (includes id)
+class AppointmentResponse(AppointmentBase):
     id: int
-    user_id: Optional[int]
 
     class Config:
         from_attributes = True
-
-
-
-
-class AppointmentBase(BaseModel):
-    date: date
-    hour: int
-    minute: int
-
-class AppointmentCreate(AppointmentBase):
-    user_id: Optional[int]
-
-class Appointment(AppointmentBase):
-    id: int
-    user_id: Optional[int]
-
-    class Config:
-        from_attributes = True
-

@@ -8,14 +8,6 @@ from dotenv import load_dotenv
 from fastapi import Depends, HTTPException, status
 from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordBearer
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-def hash_password(password: str) -> str:
-    return pwd_context.hash(password)
-
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
-
 load_dotenv() 
 
 DATABASE_URL = os.getenv("DATABASE_URL")
@@ -23,8 +15,15 @@ SECRET_KEY = os.getenv("SECRET_KEY", "fallback-secret")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30))
 ALGORITHM='HS256'
 
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")\
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+def hash_password(password: str) -> str:
+    return pwd_context.hash(password)
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return pwd_context.verify(plain_password, hashed_password)
+
+
 
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)

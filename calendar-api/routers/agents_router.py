@@ -5,7 +5,7 @@ from typing import List
 
 from db_connection import get_session
 from models import Agent as AgentModel  # SQLAlchemy model
-from schemas import AgentRead, AgentCreate  # Pydantic schemas
+from schemas import AgentRead# Pydantic schemas
 
 router = APIRouter(prefix="/agents", tags=["Agents"])
 
@@ -25,14 +25,5 @@ def get_agent(agent_id: int, session: Session = Depends(get_session)):
         raise HTTPException(status_code=404, detail="Agent not found")
     return agent
 
-
-# Create new agent
-@router.post("/", response_model=AgentRead)
-def create_agent(agent: AgentCreate, session: Session = Depends(get_session)):
-    db_agent = AgentModel(**agent.dict())
-    session.add(db_agent)
-    session.commit()
-    session.refresh(db_agent)
-    return db_agent
 
 
