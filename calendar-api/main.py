@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from sqlmodel import SQLModel
 from db_connection import engine
-from routers import agents_router, appointment_router, auth_router
+from routers import agents_router, appointment_router, auth_router, roles_router
 
 app = FastAPI()
 
@@ -12,3 +12,5 @@ app = FastAPI()
 app.include_router(agents_router.router)
 app.include_router(appointment_router.router)
 app.include_router(auth_router.router)
+app.include_router(roles_router.router)
+

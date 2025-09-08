@@ -18,8 +18,10 @@ class StateEnum(str,Enum):
 
 
 
+
 class Agent(Base):
     __tablename__ = "Agents"
+
     AgentID = Column(Integer, primary_key=True, autoincrement=True)
     Name = Column(String(255), nullable=True, unique=True)
     Email = Column(String(50), nullable=True, unique=True)
@@ -32,19 +34,31 @@ class Agent(Base):
     LastModificationTime = Column(DateTime, nullable=False)
     SoftphoneTrace = Column(Boolean, nullable=False)
     RecordStereo = Column(Boolean, nullable=False)
-    Role = Column(String(50), nullable=False)  # Store enum as string
+    # ⚠️ Remove Role column because role comes from AgentSettings.Type
+    # Role = Column(String(50), nullable=False)
+
+    settings = relationship("AgentSettings", back_populates="agent")
 
     def __repr__(self):
-        return f"<Agent(AgentID={self.AgentID}, Email={self.Email}, Name={self.Name}, Role={self.Role})>"
+        return f"<Agent(AgentID={self.AgentID}, Email={self.Email}, Name={self.Name})>"
 
-    def set_role(self, role: RoleEnum):
-        if role.value not in [r.value for r in RoleEnum]:
-            raise ValueError(f"Invalid role: {role}")
-        self.Role = role.value
+
+class AgentSettings(Base):
+    __tablename__ = "AgentSettings"
+
+    ID = Column(Integer, primary_key=True, autoincrement=True)
+    AgentID = Column(Integer, ForeignKey("Agents.AgentID"), nullable=False)
+    AppID = Column(Integer, nullable=False)
+    Type = Column(Integer, nullable=False)  # 1 = supervisor, 2 = enqueteur
+    Description = Column(String(50), nullable=True)
+    Value = Column(Integer, nullable=False)
+    StringValue = Column(String, nullable=True)
+    DateTimeValue = Column(DateTime, nullable=True)
+
+    agent = relationship("Agent", back_populates="settings")
+
     def __repr__(self):
-        return f"<Agent(AgentID={self.AgentID}, Email={self.Email}, UserName={self.UserName})>"
-
-    # appointment = relationship("Appointment", back_populates="Agents", cascade="all, delete-orphan")
+        return f"<AgentSettings(ID={self.ID}, AgentID={self.AgentID}, Type={self.Type})>"
 
 class Appointment(Base):
     __tablename__ = "Statistic_WebInterview"

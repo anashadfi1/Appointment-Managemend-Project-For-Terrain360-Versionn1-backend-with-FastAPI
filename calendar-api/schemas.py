@@ -97,3 +97,47 @@ class AppointmentResponse(AppointmentBase):
 
     class Config:
         from_attributes = True
+
+
+# AgentSettings schema
+class AgentSettingsBase(BaseModel):
+    AgentID: int
+    AppID: int
+    Type: int   # 1 = supervisor, 2 = enqueteur
+    Description: Optional[str] = None
+    Value: int
+    StringValue: Optional[str] = None
+    DateTimeValue: Optional[datetime] = None
+
+
+class AgentSettingsCreate(AgentSettingsBase):
+    pass
+
+
+class AgentSettingsResponse(AgentSettingsBase):
+    ID: int
+
+    class Config:
+        orm_mode = True
+
+
+# Agent schema
+class AgentBase(BaseModel):
+    Name: Optional[str] = None
+    Email: Optional[str] = None
+    Description: Optional[str] = None
+    Record: bool
+    MaxChatSessions: int
+    Deleted: bool
+    CreationTime: datetime
+    LastModificationTime: datetime
+    SoftphoneTrace: bool
+    RecordStereo: bool
+
+
+class AgentResponse(AgentBase):
+    AgentID: int
+    settings: Optional[AgentSettingsResponse] = None
+
+    class Config:
+        orm_mode = True
