@@ -1,0 +1,218 @@
+/* React Big Calendar Enhanced Styling */
+.rbc-calendar {
+  @apply bg-white text-gray-900 rounded-lg;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* Toolbar styling */
+.rbc-toolbar {
+  @apply mb-4 flex flex-wrap items-center justify-between gap-2 px-4 py-3 bg-gray-50 border-b;
+}
+
+.rbc-toolbar button {
+  @apply inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors;
+  @apply h-9 px-3 bg-white border border-gray-300 hover:bg-gray-50 hover:border-gray-400;
+  @apply text-gray-700 hover:text-gray-900;
+}
+
+.rbc-toolbar button:active,
+.rbc-toolbar button.rbc-active {
+  @apply bg-blue-600 text-white border-blue-600 hover:bg-blue-700;
+}
+
+.rbc-toolbar-label {
+  @apply text-lg font-semibold text-gray-900 capitalize;
+}
+
+/* Header styling */
+.rbc-header {
+  @apply bg-gray-50 text-gray-900 font-semibold py-3 px-2 border-b border-gray-200;
+  text-transform: capitalize;
+}
+
+.rbc-header + .rbc-header {
+  @apply border-l border-gray-200;
+}
+
+/* Month view */
+.rbc-month-view {
+  @apply border border-gray-200 rounded-b-lg overflow-hidden;
+}
+
+.rbc-month-row {
+  @apply border-b border-gray-200;
+}
+
+.rbc-month-row:last-child {
+  @apply border-b-0;
+}
+
+.rbc-date-cell {
+  @apply text-gray-700 p-2;
+  font-size: 14px;
+}
+
+.rbc-date-cell.rbc-off-range {
+  @apply text-gray-400;
+}
+
+.rbc-date-cell.rbc-now {
+  @apply bg-blue-50 text-blue-700 font-bold;
+}
+
+.rbc-date-cell.rbc-off-range-bg {
+  @apply bg-gray-50;
+}
+
+.rbc-today {
+  @apply bg-blue-50;
+}
+
+/* Day and week views */
+.rbc-time-view {
+  @apply border border-gray-200 rounded-b-lg overflow-hidden;
+}
+
+.rbc-time-header {
+  @apply border-b border-gray-200 bg-gray-50;
+}
+
+.rbc-time-content {
+  @apply border-l border-gray-200;
+  min-height: 600px;
+}
+
+.rbc-time-gutter {
+  @apply bg-gray-50 border-r border-gray-200;
+  width: 70px;
+}
+
+.rbc-timeslot-group {
+  @apply border-b border-gray-100;
+  min-height: 60px;
+}
+
+.rbc-time-slot {
+  @apply border-b border-gray-50;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.rbc-day-slot {
+  @apply border-r border-gray-100;
+}
+
+.rbc-day-slot:last-child {
+  @apply border-r-0;
+}
+
+/* Current time indicator */
+.rbc-current-time-indicator {
+  @apply bg-red-500;
+  height: 2px;
+  z-index: 3;
+}
+
+.rbc-current-time-indicator::before {
+  content: '';
+  position: absolute;
+  left: -6px;
+  top: -3px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  @apply bg-red-500;
+}
+
+/* Event styling */
+.rbc-event {
+  @apply rounded text-white font-medium;
+  font-size: 11px;
+  padding: 2px 4px;
+  border: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.rbc-event:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+}
+
+.rbc-event-label {
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.rbc-selected {
+  @apply ring-2 ring-blue-500 ring-offset-1;
+}
+
+/* Scrolling improvements */
+.calendar-container .rbc-time-content {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e0 #f7fafc;
+}
+
+.calendar-container .rbc-time-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.calendar-container .rbc-time-content::-webkit-scrollbar-track {
+  @apply bg-gray-100 rounded;
+}
+
+.calendar-container .rbc-time-content::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 rounded;
+}
+
+.calendar-container .rbc-time-content::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-400;
+}
+
+/* Popup styling */
+.rbc-overlay {
+  @apply bg-white border border-gray-200 rounded-lg shadow-xl;
+  max-width: 300px;
+  z-index: 1000;
+}
+
+.rbc-overlay-header {
+  @apply bg-gray-50 px-3 py-2 border-b border-gray-200 font-semibold text-gray-900;
+  border-radius: 8px 8px 0 0;
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+  .rbc-toolbar {
+    @apply flex-col gap-3;
+  }
+  
+  .rbc-toolbar-label {
+    @apply text-base;
+  }
+  
+  .rbc-time-gutter {
+    width: 50px;
+  }
+  
+  .rbc-event {
+    font-size: 10px;
+    padding: 1px 2px;
+  }
+}
+
+/* Better text visibility */
+.rbc-event {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Loading state */
+.calendar-loading {
+  @apply flex items-center justify-center h-96;
+}
+
+.calendar-loading .spinner {
+  @apply animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600;
+}
