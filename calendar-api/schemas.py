@@ -1,34 +1,50 @@
-from pydantic import BaseModel,EmailStr
+from pydantic import BaseModel, EmailStr
 from enum import Enum
-from datetime import date, datetime
-from typing import List, Optional
-from datetime import date
+from datetime import datetime
+from typing import Optional, Literal
 
 
-#Creating Enums schemas, used on our models
-
+# -----------------------------
+# ENUMS
+# -----------------------------
 class RoleEnum(str, Enum):
-    supervisor = "supervisor"
-    enqueteur = "enqueteur"
-
-class StateEnum(str,Enum):
-    confirmed="confirmed"
-    refused="refused"
-    inquee="iquee"
-    passed="passed"
-    actuallypassing="actuallypassing"
+    supervisor = "superviseur"
+    enqueteur = "enquêteur"
 
 
-#User Schemas
+class StateEnum(str, Enum):
+    confirmed = "confirmed"
+    refused = "refused"
+    inquee = "iquee"
+    passed = "passed"
+    actuallypassing = "actuallypassing"
 
-# Base schema (shared)
+
+# -----------------------------
+# AGENT SCHEMAS
+# -----------------------------
 class AgentBase(BaseModel):
-    UserName: Optional[str] = None
-    Email: Optional[EmailStr] = None
+    Name: str
+    # Password: str 
 
-#Agents schemas
+
+class AgentCreate(BaseModel):
+    Name: str
+    Password: str
+    Email: Optional[str] = None
+    Description: Optional[str] = None
+    Role: RoleEnum = RoleEnum.enqueteur  # default
+    Record: bool = False
+    MaxChatSessions: int = 1
+    Deleted: bool = False
+    SoftphoneTrace: bool = False
+    RecordStereo: bool = False
+
 class AgentRead(AgentBase):
     AgentID: int
+    Email: Optional[str] = None
+    Description: Optional[str] = None
+    Role: RoleEnum
     Record: bool
     MaxChatSessions: int
     Deleted: bool
@@ -37,18 +53,29 @@ class AgentRead(AgentBase):
     SoftphoneTrace: bool
     RecordStereo: bool
 
-    class Config:
-        from_attributes = True
-
-# 🔑 Login response schema
+class AgentUpdate(AgentBase):
+    AgentID: int
+    Email: Optional[str] = None
+    Description: Optional[str] = None 
+    Record: bool
+    MaxChatSessions: int
+    Deleted: bool
+    CreationTime: datetime
+    LastModificationTime: datetime
+    SoftphoneTrace: bool
+    RecordStereo: bool
+# -----------------------------
+# AUTH SCHEMAS
+# -----------------------------
 class LoginResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     agent: AgentRead
-    
 
 
-# Base schema (shared properties)
+# -----------------------------
+# APPOINTMENT SCHEMAS
+# -----------------------------
 class AppointmentBase(BaseModel):
     StartTime: datetime
     EndTime: datetime
@@ -57,8 +84,6 @@ class AppointmentBase(BaseModel):
     user_id: Optional[int] = None
 
 
-
-# For updating existing appointment (all fields optional)
 class AppointmentUpdate(BaseModel):
     StartTime: Optional[datetime] = None
     EndTime: Optional[datetime] = None
@@ -67,7 +92,6 @@ class AppointmentUpdate(BaseModel):
     user_id: Optional[int] = None
 
 
-# For response (includes id)
 class AppointmentResponse(AppointmentBase):
     id: int
 

@@ -5,8 +5,8 @@ from sqlalchemy.orm import relationship, declarative_base
 Base = declarative_base()
 
 class RoleEnum(str, Enum):
-    supervisor = "supervisor"
-    enqueteur = "enqueteur"
+    supervisor = "superviseur"
+    enqueteur = "enquêteur"
 
 class StateEnum(str,Enum):
     confirmed="confirmed"
@@ -20,11 +20,11 @@ class StateEnum(str,Enum):
 
 class Agent(Base):
     __tablename__ = "Agents"
-
     AgentID = Column(Integer, primary_key=True, autoincrement=True)
-    UserName = Column(String(255), nullable=True, unique=True)
+    Name = Column(String(255), nullable=True, unique=True)
     Email = Column(String(50), nullable=True, unique=True)
-    Password = Column(String(255), nullable=False) 
+    Password = Column(String(255), nullable=False)
+    Description = Column(String(255), nullable=False)
     Record = Column(Boolean, nullable=False)
     MaxChatSessions = Column(Integer, nullable=False)
     Deleted = Column(Boolean, nullable=False)
@@ -32,9 +32,15 @@ class Agent(Base):
     LastModificationTime = Column(DateTime, nullable=False)
     SoftphoneTrace = Column(Boolean, nullable=False)
     RecordStereo = Column(Boolean, nullable=False)
+    Role = Column(String(50), nullable=False)  # Store enum as string
 
-        
+    def __repr__(self):
+        return f"<Agent(AgentID={self.AgentID}, Email={self.Email}, Name={self.Name}, Role={self.Role})>"
 
+    def set_role(self, role: RoleEnum):
+        if role.value not in [r.value for r in RoleEnum]:
+            raise ValueError(f"Invalid role: {role}")
+        self.Role = role.value
     def __repr__(self):
         return f"<Agent(AgentID={self.AgentID}, Email={self.Email}, UserName={self.UserName})>"
 
