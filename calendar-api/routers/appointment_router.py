@@ -2,9 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 
-from db_connection import get_statistics_session
-from models import Appointment
-from schemas import AppointmentUpdate, AppointmentResponse
+from db_connection import get_lists_session
+from models import Appointment, AskCalls
+from schemas import AppointmentUpdate, CallIDResponse, CallsByAgent
 
 router = APIRouter(
     prefix="/appointments",
@@ -15,42 +15,30 @@ router = APIRouter(
 
 
 # Get all appointments
-@router.get("/", response_model=List[AppointmentResponse])
-def get_appointments(db: Session = Depends(get_statistics_session)):
-    return db.query(Appointment).all()
+@router.get("/", response_model=List[CallIDResponse])
+def get_appointments(db: Session = Depends(get_lists_session)):
+    return db.query(AskCalls).all()
 
 
 # Get single appointment by ID
-@router.get("/{appointment_id}", response_model=AppointmentResponse)
-def get_appointment(appointment_id: int, db: Session = Depends(get_statistics_session)):
-    appointment = db.query(Appointment).filter(Appointment.id == appointment_id).first()
-    if not appointment:
-        raise HTTPException(status_code=404, detail="Appointment not found")
-    return appointment
-
-
-# Update appointment
-@router.put("/{appointment_id}", response_model=AppointmentResponse)
-def update_appointment(appointment_id: int, appointment_update: AppointmentUpdate, db: Session = Depends(get_statistics_session)):
-    appointment = db.query(Appointment).filter(Appointment.id == appointment_id).first()
-    if not appointment:
-        raise HTTPException(status_code=404, detail="Appointment not found")
-
-    for field, value in appointment_update.dict(exclude_unset=True).items():
-        setattr(appointment, field, value)
-
-    db.commit()
-    db.refresh(appointment)
-    return appointment
+@router.get("/{call_id}", response_model=CallIDResponse)
+def get_appointment(call_id: int, db: Session = Depends(get_lists_session)):
+    try:
+        call = db.query(AskCalls).filter(AskCalls.CallID == call_id).first()
+        if not call:
+            raise HTTPException(status_code=404, detail="Appointment not found")
+        return call
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # Delete appointment
 @router.delete("/{appointment_id}")
-def delete_appointment(appointment_id: int, db: Session = Depends(get_statistics_session)):
-    appointment = db.query(Appointment).filter(Appointment.id == appointment_id).first()
-    if not appointment:
+def delete_appointment(appointment_id: int, db: Session = Depends(get_lists_session)):
+    askCalls = db.query(AskCalls).filter(AskCalls.CallID == appointment_id).first()
+    if not askCalls:
         raise HTTPException(status_code=404, detail="Appointment not found")
 
-    db.delete(appointment)
+    db.delete(askCalls)
     db.commit()
     return {"detail": "Appointment deleted"}

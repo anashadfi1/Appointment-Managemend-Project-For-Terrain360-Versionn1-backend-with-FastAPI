@@ -10,28 +10,6 @@ router = APIRouter(
     tags=["Calls"]
 )
 
-@router.get("/by-agent", response_model=list[CallsByAgent])
-def get_calls_by_agent(db: Session = Depends(get_lists_session)):
-    try:
-        results = (
-            db.query(
-                AskCalls.AgentID,
-                func.count(AskCalls.AgentID).label("TotalCalls")
-            )
-            .join(AgentsLoggedOn, AskCalls.AgentID == AgentsLoggedOn.AgentID)
-            .group_by(AskCalls.AgentID)
-            .all()
-        )
-
-        return [
-            CallsByAgent(
-                AgentID=row.AgentID,
-                TotalCalls=row.TotalCalls
-            )
-            for row in results
-        ]
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/by-agent/{agent_id}", response_model=list[CallIDResponse])
