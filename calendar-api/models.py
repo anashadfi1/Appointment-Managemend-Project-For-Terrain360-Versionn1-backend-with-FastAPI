@@ -17,8 +17,6 @@ class StateEnum(str,Enum):
 
 
 
-
-
 class Agent(Base):
     __tablename__ = "Agents"
 
@@ -34,8 +32,7 @@ class Agent(Base):
     LastModificationTime = Column(DateTime, nullable=False)
     SoftphoneTrace = Column(Boolean, nullable=False)
     RecordStereo = Column(Boolean, nullable=False)
-    # ⚠️ Remove Role column because role comes from AgentSettings.Type
-    # Role = Column(String(50), nullable=False)
+   
 
     settings = relationship("AgentSettings", back_populates="agent")
 
@@ -60,6 +57,8 @@ class AgentSettings(Base):
     def __repr__(self):
         return f"<AgentSettings(ID={self.ID}, AgentID={self.AgentID}, Type={self.Type})>"
 
+
+
 class Appointment(Base):
     __tablename__ = "Statistic_WebInterview"
     __table_args__ = {"schema": "dbo"} 
@@ -74,12 +73,31 @@ class Appointment(Base):
     # user = relationship("User", back_populates="appointment")
 
 class AskCalls(Base):
-    __tablename__ = "AskCalls10"
+    __tablename__ = "AskCall10"
+    __table_args__ = {"schema": "dbo"}   # Only schema, DB is in connection string
+
     AskInterview = Column(Integer, primary_key=True, index=True, nullable=False)
     AskTimeUTC = Column(DateTime, primary_key=True, index=True, nullable=False)
     CallID = Column(Integer, nullable=False)
-    AgentID = Column(Integer, ForeignKey("Agents.AgentID"), nullable=True)
+    AgentID = Column(Integer, ForeignKey("dbo.AgentsLoggedOn.AgentID"), nullable=True)
     AskState = Column(SmallInteger, nullable=True)
 
-    # other columns...
+    # One AskCalls → belongs to one AgentsLoggedOn
+    agent = relationship("AgentsLoggedOn", back_populates="calls")
+
+
+class AgentsLoggedOn(Base):
+    __tablename__ = "AgentsLoggedOn"
+    __table_args__ = {"schema": "dbo"}
+
+    AgentID = Column(Integer, primary_key=True, autoincrement=True)
+    OutboundTaskID = Column(Integer, nullable=True)
+
+    # One Agent → many AskCalls
+    calls = relationship("AskCalls", back_populates="agent")
+
+    def __repr__(self):
+        return f"<AgentsLoggedOn(AgentID={self.AgentID}, OutboundTaskID={self.OutboundTaskID})>"
+
+
 

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from typing import List
-from db_connection import get_session
+from db_connection import get_cca_session
 from models import Agent, AgentSettings
 from schemas import AgentResponse
 
@@ -12,7 +12,7 @@ router = APIRouter(
 
 
 @router.get("/agents/", response_model=List[AgentResponse])
-def get_agents_by_role(role: str, db: Session = Depends(get_session)):
+def get_agents_by_role(role: str, db: Session = Depends(get_cca_session)):
     """
     Get agents filtered by role (supervisor / enqueteur).
     Role is defined by AgentSettings.Type:

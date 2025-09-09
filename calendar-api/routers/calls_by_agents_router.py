@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from db_connection import get_session  # your database session dependency
-from models import AskCalls, Agent  # your SQLAlchemy models
-from schemas import CallsByAgent, CallIDResponse # Pydantic schema for response
+from db_connection import get_lists_session
+from models import AskCalls, AgentsLoggedOn
+from schemas import CallsByAgent, CallIDResponse
 
 router = APIRouter(
     prefix="/calls",
@@ -11,23 +11,21 @@ router = APIRouter(
 )
 
 @router.get("/by-agent", response_model=list[CallsByAgent])
-def get_calls_by_agent(db: Session = Depends(get_session)):
+def get_calls_by_agent(db: Session = Depends(get_lists_session)):
     try:
         results = (
             db.query(
                 AskCalls.AgentID,
-                Agent.Name.label("AgentName"),
                 func.count(AskCalls.AgentID).label("TotalCalls")
             )
-            .join(Agent, AskCalls.AgentID == Agent.AgentID)
-            .group_by(AskCalls.AgentID, Agent.Name)
+            .join(AgentsLoggedOn, AskCalls.AgentID == AgentsLoggedOn.AgentID)
+            .group_by(AskCalls.AgentID)
             .all()
         )
 
         return [
             CallsByAgent(
                 AgentID=row.AgentID,
-                AgentName=row.AgentName,
                 TotalCalls=row.TotalCalls
             )
             for row in results
@@ -35,8 +33,9 @@ def get_calls_by_agent(db: Session = Depends(get_session)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @router.get("/by-agent/{agent_id}", response_model=list[CallIDResponse])
-def get_calls_by_agent_id(agent_id: int, db: Session = Depends(get_session)):
+def get_calls_by_agent_id(agent_id: int, db: Session = Depends(get_lists_session)):
     try:
         calls = (
             db.query(AskCalls.CallID)

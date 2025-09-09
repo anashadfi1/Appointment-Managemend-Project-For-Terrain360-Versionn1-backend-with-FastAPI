@@ -33,7 +33,7 @@ class AgentCreate(BaseModel):
     Password: str
     Email: Optional[str] = None
     Description: Optional[str] = None
-    Role: RoleEnum = RoleEnum.enqueteur  # default
+    # Role: Optional[RoleEnum]  # ✅ make optional
     Record: bool = False
     MaxChatSessions: int = 1
     Deleted: bool = False
@@ -44,7 +44,7 @@ class AgentRead(AgentBase):
     AgentID: int
     Email: Optional[str] = None
     Description: Optional[str] = None
-    Role: RoleEnum
+    # Role: Optional[RoleEnum]  # ✅ make optional
     Record: bool
     MaxChatSessions: int
     Deleted: bool
@@ -52,6 +52,7 @@ class AgentRead(AgentBase):
     LastModificationTime: datetime
     SoftphoneTrace: bool
     RecordStereo: bool
+
 
 class AgentUpdate(AgentBase):
     AgentID: int
@@ -145,7 +146,6 @@ class AgentResponse(AgentBase):
 # calls by agents schema
 class CallsByAgent(BaseModel):
     AgentID: int
-    AgentName: str
     TotalCalls: int
 
     class Config:
@@ -156,4 +156,5 @@ class CallIDResponse(BaseModel):
     CallID: int
 
     class Config:
+        from_attributes = True
         from_attributes = True

@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from sqlmodel import SQLModel
-from db_connection import engine
+# from db_connection import engine
 from routers import agents_router, appointment_router, auth_router, roles_router, calls_by_agents_router
 
 app = FastAPI()
