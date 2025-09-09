@@ -1,5 +1,3 @@
-# utils/auth.py
-from passlib.context import CryptContext
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Callable
@@ -15,20 +13,17 @@ load_dotenv()
 
 SECRET_KEY = os.getenv("SECRET_KEY", "fallback-secret")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30))
-ALGORITHM = 'HS256'
+ALGORITHM = "HS256"
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 # ---------------- PASSWORD UTILS ----------------
-# def hash_password(password: str) -> str:
-#     return pwd_context.hash(password)
-
-def verify_password(plain_password: str) -> bool:
-    try:
-        return pwd_context.verify(plain_password)
-    except Exception:
-        return False
+def verify_password(plain_password: str, stored_password: str) -> bool:
+    """
+    Verify password without hashing.
+    Simply compares plain text password with the stored password.
+    """
+    return plain_password == stored_password
 
 # ---------------- AUTHENTICATION ----------------
 def authenticate_user(db: Session, username: str, password: str):

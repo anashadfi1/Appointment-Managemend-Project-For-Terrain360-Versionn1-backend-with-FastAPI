@@ -118,8 +118,7 @@ class AgentSettingsResponse(AgentSettingsBase):
     ID: int
 
     class Config:
-        orm_mode = True
-
+        from_attributes = True
 
 # Agent schema
 class AgentBase(BaseModel):
@@ -140,4 +139,21 @@ class AgentResponse(AgentBase):
     settings: Optional[AgentSettingsResponse] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
+
+
+# calls by agents schema
+class CallsByAgent(BaseModel):
+    AgentID: int
+    AgentName: str
+    TotalCalls: int
+
+    class Config:
+        from_attributes = True
+
+
+class CallIDResponse(BaseModel):
+    CallID: int
+
+    class Config:
+        from_attributes = True

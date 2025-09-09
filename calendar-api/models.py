@@ -1,5 +1,5 @@
 from enum import Enum
-from sqlalchemy import Column, Integer, String, Enum as SQLEnum, Date, ForeignKey, DateTime, Boolean
+from sqlalchemy import Column, Integer, String, Enum as SQLEnum, Date, ForeignKey, DateTime, Boolean, SmallInteger
 from sqlalchemy.orm import relationship, declarative_base
 
 Base = declarative_base()
@@ -72,4 +72,14 @@ class Appointment(Base):
     LastState = Column(Integer, nullable=True)
 
     # user = relationship("User", back_populates="appointment")
+
+class AskCalls(Base):
+    __tablename__ = "AskCalls10"
+    AskInterview = Column(Integer, primary_key=True, index=True, nullable=False)
+    AskTimeUTC = Column(DateTime, primary_key=True, index=True, nullable=False)
+    CallID = Column(Integer, nullable=False)
+    AgentID = Column(Integer, ForeignKey("Agents.AgentID"), nullable=True)
+    AskState = Column(SmallInteger, nullable=True)
+
+    # other columns...
 
