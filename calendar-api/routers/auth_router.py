@@ -11,6 +11,22 @@ from utils.auth import authenticate_user, verify_password, create_access_token, 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
+# @router.post("/login")
+# def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_cca_session)):
+#     user = authenticate_user(db, form_data.username, form_data.password)
+#     if not user:
+#         raise HTTPException(
+#             status_code=status.HTTP_401_UNAUTHORIZED,
+#             detail="Invalid username or password",
+#         )
+#     access_token = create_access_token(data={"sub": user.Name})
+#     return {"access_token": access_token, "token_type": "bearer"}
+
+
+
+
+
+
 @router.post("/login")
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_cca_session)):
     user = authenticate_user(db, form_data.username, form_data.password)
@@ -19,8 +35,16 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid username or password",
         )
+
     access_token = create_access_token(data={"sub": user.Name})
-    return {"access_token": access_token, "token_type": "bearer"}
+
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "username": user.Name,   # 👈 add this
+        "email": user.Email      # 👈 add this (make sure your User model has it)
+    }
+
 # @router.get("/admin-only")
 # def admin_dashboard(current_user: dict = Depends(require_role(RoleEnum.supervisor))):
 #     return {"message": f"Hello {current_user['username']}, you are a supervisor!"}
