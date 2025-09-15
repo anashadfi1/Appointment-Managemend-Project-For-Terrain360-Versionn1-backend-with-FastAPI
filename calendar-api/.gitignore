@@ -17,6 +17,5 @@ routers/__pycache__/
 .vscode/
 .idea/
 *.iml
-nodes_module/
 
 

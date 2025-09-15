@@ -1,7 +1,7 @@
 from pydantic import BaseModel, EmailStr
 from enum import Enum
 from datetime import datetime
-from typing import Optional, Literal
+from typing import Optional, Literal, List
 
 
 # -----------------------------
@@ -33,7 +33,6 @@ class AgentCreate(BaseModel):
     Password: str
     Email: Optional[str] = None
     Description: Optional[str] = None
-    # Role: Optional[RoleEnum]  # ✅ make optional
     Record: bool = False
     MaxChatSessions: int = 1
     Deleted: bool = False
@@ -44,7 +43,6 @@ class AgentRead(AgentBase):
     AgentID: int
     Email: Optional[str] = None
     Description: Optional[str] = None
-    # Role: Optional[RoleEnum]  # ✅ make optional
     Record: bool
     MaxChatSessions: int
     Deleted: bool
@@ -99,6 +97,22 @@ class AppointmentResponse(AppointmentBase):
     class Config:
         from_attributes = True
 
+# ---------------- Pydantic Schemas ----------------
+class AppointmentCreate(BaseModel):
+    StartTime: Optional[datetime] = None
+    EndTime: Optional[datetime] = None
+    LastState: Optional[int] = None
+
+
+class AppointmentRead(BaseModel):
+    WebInterviewId: int
+    StartTime: Optional[datetime]
+    EndTime: Optional[datetime]
+    LastState: Optional[int]
+    AgentID: int
+
+    class Config:
+        from_attributes = True
 
 # AgentSettings schema
 class AgentSettingsBase(BaseModel):
@@ -135,9 +149,11 @@ class AgentBase(BaseModel):
     RecordStereo: bool
 
 
-class AgentResponse(AgentBase):
+class AgentResponse(BaseModel):
     AgentID: int
-    settings: Optional[AgentSettingsResponse] = None
+    Name: Optional[str]
+    Email: Optional[str]
+    settings: List[AgentSettingsResponse] = []  # nested relationship
 
     class Config:
         from_attributes = True
@@ -158,3 +174,4 @@ class CallIDResponse(BaseModel):
     class Config:
         from_attributes = True
         from_attributes = True
+

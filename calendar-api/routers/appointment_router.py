@@ -30,15 +30,3 @@ def get_appointment(call_id: int, db: Session = Depends(get_lists_session)):
         return call
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-
-# Delete appointment
-@router.delete("/{appointment_id}")
-def delete_appointment(appointment_id: int, db: Session = Depends(get_lists_session)):
-    askCalls = db.query(AskCalls).filter(AskCalls.CallID == appointment_id).first()
-    if not askCalls:
-        raise HTTPException(status_code=404, detail="Appointment not found")
-
-    db.delete(askCalls)
-    db.commit()
-    return {"detail": "Appointment deleted"}

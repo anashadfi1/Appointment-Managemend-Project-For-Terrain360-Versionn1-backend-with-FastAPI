@@ -1,50 +1,67 @@
 # routers/auth_router.py
-from fastapi import APIRouter, Depends, HTTPException,status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordRequestForm
 
 from db_connection import get_cca_session
-from models import Agent as AgentModel, RoleEnum
-from schemas import AgentRead, LoginResponse
-from utils.auth import authenticate_user, verify_password, create_access_token, get_current_user, require_role
+from models import Agent as AgentModel
+from schemas import AgentRead
+from utils.auth import authenticate_user, create_access_token, get_current_agent, require_role
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
-# @router.post("/login")
-# def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_cca_session)):
-#     user = authenticate_user(db, form_data.username, form_data.password)
-#     if not user:
-#         raise HTTPException(
-#             status_code=status.HTTP_401_UNAUTHORIZED,
-#             detail="Invalid username or password",
-#         )
-#     access_token = create_access_token(data={"sub": user.Name})
-#     return {"access_token": access_token, "token_type": "bearer"}
-
-
-
-
-
-
 @router.post("/login")
-def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_cca_session)):
+def login(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_cca_session),
+):
+    """
+    Authenticate the agent and return a JWT access token containing:
+    - AgentID (sub)
+    - Username (Name)
+    - Role (from AgentSettings.Type)
+    """
     user = authenticate_user(db, form_data.username, form_data.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid username or password",
+            headers={"WWW-Authenticate": "Bearer"},
         )
 
-    access_token = create_access_token(data={"sub": user.Name})
+    # Map Type → Role string
+    role_map = {1: "supervisor", 2: "enqueteur"}
+
+    # Some agents may have multiple settings, just take the first
+    role_setting = next(iter(user.settings), None)
+    role = role_map.get(role_setting.Type) if role_setting else None
+
+    # Create token with sub, username, role
+    access_token = create_access_token(
+        data={
+            "sub": str(user.AgentID),  # unique ID
+            "username": user.Name,
+            "role": role,
+        }
+    )
 
     return {
         "access_token": access_token,
         "token_type": "bearer",
-        "username": user.Name,   # 👈 add this
-        "email": user.Email      # 👈 add this (make sure your User model has it)
+        "agent_id": user.AgentID,
+        "username": user.Name,
+        "email": user.Email,
+        "role": role,
     }
 
-# @router.get("/admin-only")
-# def admin_dashboard(current_user: dict = Depends(require_role(RoleEnum.supervisor))):
-#     return {"message": f"Hello {current_user['username']}, you are a supervisor!"}
+
+@router.get("/me", response_model=AgentRead)
+def read_current_agent(current_agent: AgentModel = Depends(get_current_agent)):
+    """Return the currently authenticated agent based on JWT token."""
+    return current_agent
+
+
+@router.get("/supervisor-only", dependencies=[Depends(require_role(["supervisor"]))])
+def supervisor_area():
+    return {"message": "Welcome Supervisor! 🎩"}

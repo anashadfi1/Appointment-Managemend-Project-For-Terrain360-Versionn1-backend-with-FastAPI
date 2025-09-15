@@ -17,6 +17,25 @@ class StateEnum(str,Enum):
 
 
 
+class Appointment(Base):
+    __tablename__ = "Statistic_WebInterview"
+    __table_args__ = {"schema": "dbo"} 
+
+    WebInterviewId = Column(Integer, primary_key=True, index=True)
+    StartTime = Column(DateTime, nullable=True)
+    EndTime = Column(DateTime, nullable=True)
+    LastState = Column(Integer, nullable=True)
+
+    # Foreign key to Agent
+    AgentID = Column(Integer, ForeignKey("Agents.AgentID"), nullable=False)
+
+    # Many-to-One: many appointments belong to one agent
+    agent = relationship("Agent", back_populates="appointments")
+
+    def __repr__(self):
+        return f"<Appointment(WebInterviewId={self.WebInterviewId}, AgentID={self.AgentID})>"
+
+
 class Agent(Base):
     __tablename__ = "Agents"
 
@@ -32,8 +51,11 @@ class Agent(Base):
     LastModificationTime = Column(DateTime, nullable=False)
     SoftphoneTrace = Column(Boolean, nullable=False)
     RecordStereo = Column(Boolean, nullable=False)
-   
 
+    # One-to-Many: one agent can have many appointments
+    appointments = relationship("Appointment", back_populates="agent", cascade="all, delete-orphan")
+
+    # One-to-Many: one agent can have many settings
     settings = relationship("AgentSettings", back_populates="agent")
 
     def __repr__(self):
@@ -59,18 +81,18 @@ class AgentSettings(Base):
 
 
 
-class Appointment(Base):
-    __tablename__ = "Statistic_WebInterview"
-    __table_args__ = {"schema": "dbo"} 
+# class Appointment(Base):
+#     __tablename__ = "Statistic_WebInterview"
+#     __table_args__ = {"schema": "dbo"} 
 
-    WebInterviewId = Column(Integer, primary_key=True, index=True)
-    StartTime = Column(DateTime, nullable=True)
-    EndTime = Column(DateTime, nullable=True)
+#     WebInterviewId = Column(Integer, primary_key=True, index=True)
+#     StartTime = Column(DateTime, nullable=True)
+#     EndTime = Column(DateTime, nullable=True)
 
-    # Optional: you can map "LastState" if you want a state-like field
-    LastState = Column(Integer, nullable=True)
+#     # Optional: you can map "LastState" if you want a state-like field
+#     LastState = Column(Integer, nullable=True)
 
-    # user = relationship("User", back_populates="appointment")
+#     user = relationship("User", back_populates="appointment")
 
 class AskCalls(Base):
     __tablename__ = "AskCall10"
