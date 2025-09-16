@@ -7,10 +7,17 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
 from jose.exceptions import ExpiredSignatureError
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload  # ← Added joinedload import
 
 from models import Agent
 from db_connection import get_cca_session
+import logging
+from jose.exceptions import ExpiredSignatureError
+
+# Configure logger (you can put this once in your app startup)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logger = logging.getLogger(__name__)
+
 
 # ---------------- ENV CONFIG ----------------
 SECRET_KEY = os.getenv("SECRET_KEY", "super-secret-key")  # fallback for safety
@@ -54,47 +61,46 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
 
 def decode_access_token(token: str) -> dict:
     try:
-        logger.debug(f"Decoding token: {token}")
+        logger.info(f"🔹 Decoding token: {token}")
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        logger.debug(f"Decoded payload: {payload}")
+        logger.info(f"🔹 Decoded payload: {payload}")
         return payload
     except ExpiredSignatureError:
-        logger.error("Token has expired")
+        logger.error("❌ Token has expired")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token has expired",
             headers={"WWW-Authenticate": "Bearer"},
         )
     except JWTError as e:
-        logger.error(f"JWT decode error: {e}")
+        logger.error(f"❌ JWT decode error: {e}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-
 # ---------------- CURRENT USER ----------------
 def get_current_agent(token: str = Depends(oauth2_scheme), db: Session = Depends(get_cca_session)) -> Agent:
-    try:
-        print("🔹 Raw token:", token)  # Debug
-        payload = decode_access_token(token)
-        print("🔹 Decoded payload:", payload)  # Debug
-
-        agent_id = payload.get("sub")
-        if agent_id is None:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
-        
-        agent = db.query(Agent).filter(Agent.AgentID == int(agent_id)).first()
-        if not agent:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
-        return agent
-    except Exception as e:
-        print("❌ Exception in get_current_agent:", str(e))  # Debug
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=f"401: {str(e)}")
-
-
-
+    """
+    Get the current agent from the JWT token.
+    Dynamically attach 'role' attribute based on AgentSettings.Type.
+    """
+    payload = decode_access_token(token)
+    agent_id = payload.get("sub")
+    if agent_id is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+    
+    agent = db.query(Agent).options(joinedload(Agent.settings)).filter(Agent.AgentID == int(agent_id)).first()
+    if not agent:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
+    
+    # Map Type -> role string
+    role_map = {1: "supervisor", 2: "enqueteur"}
+    first_setting = next(iter(agent.settings), None)
+    agent.role = role_map.get(first_setting.Type) if first_setting else None
+    
+    return agent
 
 
 # ---------------- ROLE HELPERS ----------------

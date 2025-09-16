@@ -65,3 +65,7 @@ def read_current_agent(current_agent: AgentModel = Depends(get_current_agent)):
 @router.get("/supervisor-only", dependencies=[Depends(require_role(["supervisor"]))])
 def supervisor_area():
     return {"message": "Welcome Supervisor! 🎩"}
+
+# @router.get("/secure")
+# def secure_route(current_user: Agent = Depends(get_current_agent)):
+#     return {"msg": f"Hello {current_user.Name}, role={current_user.role}"}

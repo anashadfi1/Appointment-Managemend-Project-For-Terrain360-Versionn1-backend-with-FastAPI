@@ -84,8 +84,33 @@
 
 from utils.auth import create_access_token
 from utils.auth import decode_access_token, SECRET_KEY
-token = create_access_token({"sub": "Agent"})
+token = create_access_token( {
+"sub":"Agent",
+"username":"Agent",
+"role":"supervisor"
+})
 print("Generated token:", token)
 print("Decoded token:", decode_access_token(token))
 print(repr(SECRET_KEY))
 
+# test_script.py
+# from utils.auth import create_access_token, decode_access_token, SECRET_KEY
+
+# # --- Step 1: Create a token ---
+# payload = {
+#     "sub": "Agent",  # this can be any identifier, e.g., AgentID
+#     "role": "supervisor"  # optional, add role to test role-based access
+# }
+# token = create_access_token(payload)
+
+# print("✅ Generated token:")
+# print(token)
+
+# # --- Step 2: Decode the token ---
+# decoded_payload = decode_access_token(token)
+# print("\n✅ Decoded token payload:")
+# print(decoded_payload)
+
+# # --- Step 3: Show the secret key being used ---
+# print("\n🔑 SECRET_KEY used for encoding/decoding:")
+# print(repr(SECRET_KEY))

@@ -12,7 +12,7 @@ router = APIRouter(prefix="/agents", tags=["Agents"])
 
 
 # ✅ List all agents
-@router.get("/", response_model=List[AgentRead])
+@router.get("/all", response_model=List[AgentRead])
 def list_agents(session: Session = Depends(get_cca_session)):
     agents = session.query(AgentModel).all()
     return agents
