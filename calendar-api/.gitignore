@@ -17,5 +17,8 @@ routers/__pycache__/
 .vscode/
 .idea/
 *.iml
+#frotend 
+../calendar-ui/.env
+../calendar-ui/nodes_modules/
 
 

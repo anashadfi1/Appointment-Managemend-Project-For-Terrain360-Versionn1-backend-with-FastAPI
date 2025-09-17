@@ -15,7 +15,7 @@ router = APIRouter(
 
 
 # Get all appointments
-@router.get("/", response_model=List[CallIDResponse])
+@router.get("/all", response_model=List[CallIDResponse])
 def get_appointments(db: Session = Depends(get_lists_session)):
     return db.query(AskCalls).all()
 
