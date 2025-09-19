@@ -1,8 +1,7 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from enum import Enum
 from datetime import datetime
-from typing import Optional, Literal, List
-
+from typing import Optional, List
 
 # -----------------------------
 # ENUMS
@@ -25,7 +24,6 @@ class StateEnum(str, Enum):
 # -----------------------------
 class AgentBase(BaseModel):
     Name: str
-    # Password: str 
 
 
 class AgentCreate(BaseModel):
@@ -39,6 +37,7 @@ class AgentCreate(BaseModel):
     SoftphoneTrace: bool = False
     RecordStereo: bool = False
 
+
 class AgentRead(AgentBase):
     AgentID: int
     Email: Optional[str] = None
@@ -51,18 +50,19 @@ class AgentRead(AgentBase):
     SoftphoneTrace: bool
     RecordStereo: bool
 
+    class Config:
+        from_attributes = True
 
-class AgentUpdate(AgentBase):
+
+class AgentResponse(BaseModel):
     AgentID: int
-    Email: Optional[str] = None
-    Description: Optional[str] = None 
-    Record: bool
-    MaxChatSessions: int
-    Deleted: bool
-    CreationTime: datetime
-    LastModificationTime: datetime
-    SoftphoneTrace: bool
-    RecordStereo: bool
+    Name: Optional[str]
+    Email: Optional[str]
+
+    class Config:
+        from_attributes = True
+
+
 # -----------------------------
 # AUTH SCHEMAS
 # -----------------------------
@@ -76,45 +76,37 @@ class LoginResponse(BaseModel):
 # APPOINTMENT SCHEMAS
 # -----------------------------
 class AppointmentBase(BaseModel):
-    StartTime: datetime
-    EndTime: datetime
-    state: StateEnum
-    description: str
-    user_id: Optional[int] = None
-
-
-class AppointmentUpdate(BaseModel):
-    StartTime: Optional[datetime] = None
-    EndTime: Optional[datetime] = None
-    state: Optional[StateEnum] = None
-    description: Optional[str] = None
-    user_id: Optional[int] = None
+    ListID: int
+    ContactID: int
+    CallID: int
+    TimeUTC: datetime
+    AgentID: int  # FK to StatisticAgent
+    AppointmentOnlyForAgent: bool
+    AppointmentTimeUTC: datetime
+    AppointmentMessage: str
+    AppointmentAckMessage: str
+    Importance: int
+    CallResult: int
+    CallSubResult: int
 
 
 class AppointmentResponse(AppointmentBase):
-    id: int
-
+    StatsAppointmentID: int  # PK
     class Config:
         from_attributes = True
 
-# ---------------- Pydantic Schemas ----------------
-class AppointmentCreate(BaseModel):
-    StartTime: Optional[datetime] = None
-    EndTime: Optional[datetime] = None
-    LastState: Optional[int] = None
 
-
-class AppointmentRead(BaseModel):
-    WebInterviewId: int
-    StartTime: Optional[datetime]
-    EndTime: Optional[datetime]
-    LastState: Optional[int]
-    AgentID: int
-
+# Grouped appointments by StatisticAgent
+class AppointmentsByStatisticAgentResponse(BaseModel):
+    StatAgentID: int
+    appointments: List[AppointmentResponse]
     class Config:
         from_attributes = True
 
-# AgentSettings schema
+
+# -----------------------------
+# AGENT SETTINGS
+# -----------------------------
 class AgentSettingsBase(BaseModel):
     AgentID: int
     AppID: int
@@ -125,53 +117,28 @@ class AgentSettingsBase(BaseModel):
     DateTimeValue: Optional[datetime] = None
 
 
-class AgentSettingsCreate(AgentSettingsBase):
-    pass
-
-
 class AgentSettingsResponse(AgentSettingsBase):
     ID: int
 
     class Config:
         from_attributes = True
 
-# Agent schema
-class AgentBase(BaseModel):
-    Name: Optional[str] = None
-    Email: Optional[str] = None
-    Description: Optional[str] = None
-    Record: bool
-    MaxChatSessions: int
-    Deleted: bool
-    CreationTime: datetime
-    LastModificationTime: datetime
-    SoftphoneTrace: bool
-    RecordStereo: bool
+
+# -----------------------------
+# STATISTIC AGENT SCHEMAS
+# -----------------------------
+class StatisticAgentBase(BaseModel):
+    Inbound: bool
+    DiversionOnBusy: bool
+    DiversionOnNoAnswer: bool
+    DiversionOnAgentPaused: bool
+    OverflowNoMember: bool
+    AgentDisconnected: bool
 
 
-class AgentResponse(BaseModel):
-    AgentID: int
-    Name: Optional[str]
-    Email: Optional[str]
-    settings: List[AgentSettingsResponse] = []  # nested relationship
+class StatisticAgentResponse(StatisticAgentBase):
+    StatAgentID: int
+    appointments: List[AppointmentResponse] = []  # One-to-Many
 
     class Config:
         from_attributes = True
-
-
-# calls by agents schema
-class CallsByAgent(BaseModel):
-    AgentID: int
-    TotalCalls: int
-
-    class Config:
-        from_attributes = True
-
-
-class CallIDResponse(BaseModel):
-    CallID: int
-
-    class Config:
-        from_attributes = True
-        from_attributes = True
-

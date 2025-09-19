@@ -15,25 +15,47 @@ class StateEnum(str,Enum):
     passed="passed"
     actuallypassing="actuallypassing"
 
+class StatisticAgent(Base):
+    __tablename__ = "Statistic_Agent"
+
+    AgentID = Column(Integer, primary_key=True, index=True)
+    Inbound = Column(Boolean, nullable=False)
+    DiversionOnBusy = Column(Boolean, nullable=False)
+    DiversionOnNoAnswer = Column(Boolean, nullable=False)
+    DiversionOnAgentPaused = Column(Boolean, nullable=False)
+    OverflowNoMember = Column(Boolean, nullable=False)
+    AgentDisconnected = Column(Boolean, nullable=False)
+
+    # one-to-many: one agent → many appointments
+    appointments = relationship("Appointment", back_populates="stat_agent")
 
 
 class Appointment(Base):
-    __tablename__ = "Statistic_WebInterview"
-    __table_args__ = {"schema": "dbo"} 
+    __tablename__ = "Statistic_Appointment"
 
-    WebInterviewId = Column(Integer, primary_key=True, index=True)
-    StartTime = Column(DateTime, nullable=True)
-    EndTime = Column(DateTime, nullable=True)
-    LastState = Column(Integer, nullable=True)
+    StatsAppointmentID = Column(Integer, primary_key=True, index=True)
+    ListID = Column(Integer, nullable=False)
+    ContactID = Column(Integer, nullable=False)
+    CallID = Column(Integer, nullable=False)
+    TimeUTC = Column(DateTime, nullable=False)
 
-    # Foreign key to Agent
-    AgentID = Column(Integer, ForeignKey("Agents.AgentID"), nullable=False)
+    # foreign key to Statistic_Agent
+    AgentID = Column(Integer, ForeignKey("Statistic_Agent.AgentID"))
 
-    # Many-to-One: many appointments belong to one agent
-    agent = relationship("Agent", back_populates="appointments")
+    AppointmentOnlyForAgent = Column(Boolean, default=False)
+    AppointmentTimeUTC = Column(DateTime, nullable=False)
+    AppointmentMessage = Column(String, nullable=True)
+    AppointmentAckMessage = Column(String, nullable=True)
+    Importance = Column(Integer, nullable=True)
+    CallResult = Column(Integer, nullable=True)
+    CallSubResult = Column(Integer, nullable=True)
+
+    # back-reference to agent
+    stat_agent = relationship("StatisticAgent", back_populates="appointments")
 
     def __repr__(self):
-        return f"<Appointment(WebInterviewId={self.WebInterviewId}, AgentID={self.AgentID})>"
+        return f"<Appointment(StatsAppointmentID={self.StatsAppointmentID}, AgentID={self.AgentID})>"
+
 
 
 class Agent(Base):
@@ -51,15 +73,12 @@ class Agent(Base):
     LastModificationTime = Column(DateTime, nullable=False)
     SoftphoneTrace = Column(Boolean, nullable=False)
     RecordStereo = Column(Boolean, nullable=False)
-
-    # One-to-Many: one agent can have many appointments
-    appointments = relationship("Appointment", back_populates="agent", cascade="all, delete-orphan")
-
     # One-to-Many: one agent can have many settings
     settings = relationship("AgentSettings", back_populates="agent")
 
     def __repr__(self):
         return f"<Agent(AgentID={self.AgentID}, Email={self.Email}, Name={self.Name})>"
+
 
 
 class AgentSettings(Base):
@@ -80,19 +99,6 @@ class AgentSettings(Base):
         return f"<AgentSettings(ID={self.ID}, AgentID={self.AgentID}, Type={self.Type})>"
 
 
-
-# class Appointment(Base):
-#     __tablename__ = "Statistic_WebInterview"
-#     __table_args__ = {"schema": "dbo"} 
-
-#     WebInterviewId = Column(Integer, primary_key=True, index=True)
-#     StartTime = Column(DateTime, nullable=True)
-#     EndTime = Column(DateTime, nullable=True)
-
-#     # Optional: you can map "LastState" if you want a state-like field
-#     LastState = Column(Integer, nullable=True)
-
-#     user = relationship("User", back_populates="appointment")
 
 class AskCalls(Base):
     __tablename__ = "AskCall10"
@@ -120,6 +126,3 @@ class AgentsLoggedOn(Base):
 
     def __repr__(self):
         return f"<AgentsLoggedOn(AgentID={self.AgentID}, OutboundTaskID={self.OutboundTaskID})>"
-
-
-

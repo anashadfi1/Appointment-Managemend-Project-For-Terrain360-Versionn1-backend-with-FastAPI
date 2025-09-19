@@ -6,7 +6,7 @@ from datetime import datetime
 
 from db_connection import get_cca_session
 from models import Agent as AgentModel  # SQLAlchemy model
-from schemas import AgentRead, AgentCreate, AgentUpdate # Pydantic schemas
+from schemas import AgentRead, AgentCreate # Pydantic schemas
 
 router = APIRouter(prefix="/agents", tags=["Agents"])
 

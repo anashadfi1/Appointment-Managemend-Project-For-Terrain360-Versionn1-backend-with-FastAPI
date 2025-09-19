@@ -5,6 +5,7 @@ from typing import List
 from db_connection import get_cca_session
 from models import Agent, AgentSettings
 from schemas import AgentResponse
+from schemas import AppointmentResponse
 
 router = APIRouter(
     prefix="/roles",
