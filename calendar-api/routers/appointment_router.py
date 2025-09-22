@@ -1,45 +1,29 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from sqlmodel import Session, select
 from typing import List
 
-from db_connection import get_statistics_session, get_cca_session
-from models import Appointment as AppointmentModel, Agent  # <-- import Agent
-from schemas import AppointmentResponse
-from sqlalchemy.orm import joinedload
+from db_connection import get_statistics_session
+from models import Appointment
+
+router = APIRouter(prefix="/appointments", tags=["Appointments"])
 
 
-router = APIRouter(
-    prefix="/appointments",
-    tags=["Appointments"]
-)
-
-# Get all appointments
-
-@router.get("/all", response_model=List[AppointmentResponse])
-def get_appointments(db: Session = Depends(get_statistics_session)):
-    appointments = db.query(AppointmentModel).all()
-    return appointments
+@router.get("/", response_model=List[Appointment])
+def list_appointments(db: Session = Depends(get_statistics_session)):
+    return db.exec(select(Appointment)).all()
 
 
-# Get single appointment by ID
-@router.get("/{appointment_id}", response_model=AppointmentResponse)
+@router.get("/{appointment_id}", response_model=Appointment)
 def get_appointment(appointment_id: int, db: Session = Depends(get_statistics_session)):
-    try:
-        appointment = db.query(AppointmentModel).filter(AppointmentModel.StatsAppointmentID == appointment_id).first()
-        if not appointment:
-            raise HTTPException(status_code=404, detail="Appointment not found")
-        return appointment
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    appointment = db.exec(select(Appointment).where(Appointment.StatsAppointmentID == appointment_id)).first()
+    if not appointment:
+        raise HTTPException(status_code=404, detail="Appointment not found")
+    return appointment
 
 
-# Get appointments by agent
-# @router.get("/by-agent/{agent_id}", response_model=AppointmentsByAgentResponse)
-# def get_appointments_by_agent(agent_id: int, db: Session = Depends(get_cca_session)):
-#     agent = db.query(Agent).filter(Agent.AgentID == agent_id).first()
-#     if not agent:
-#         raise HTTPException(status_code=404, detail="Agent not found")
-
-#     appointments = db.query(AppointmentModel).filter(AppointmentModel.AgentID == agent_id).all()
-
-#     return AppointmentsByAgentResponse(agent=agent, appointments=appointments)
+@router.post("/", response_model=Appointment)
+def create_appointment(appointment: Appointment, db: Session = Depends(get_statistics_session)):
+    db.add(appointment)
+    db.commit()
+    db.refresh(appointment)
+    return appointment

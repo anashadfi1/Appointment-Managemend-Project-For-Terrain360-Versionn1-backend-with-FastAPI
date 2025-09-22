@@ -1,128 +1,129 @@
 from enum import Enum
-from sqlalchemy import Column, Integer, String, Enum as SQLEnum, Date, ForeignKey, DateTime, Boolean, SmallInteger
-from sqlalchemy.orm import relationship, declarative_base
+from typing import Optional, List
+from datetime import datetime
 
-Base = declarative_base()
+from sqlmodel import SQLModel, Field, Relationship
+
+
+# ---------------- ENUMS ---------------- #
 
 class RoleEnum(str, Enum):
     supervisor = "superviseur"
     enqueteur = "enquêteur"
 
-class StateEnum(str,Enum):
-    confirmed="confirmed"
-    refused="refused"
-    inquee="iquee"
-    passed="passed"
-    actuallypassing="actuallypassing"
 
-class StatisticAgent(Base):
+class StateEnum(str, Enum):
+    confirmed = "confirmed"
+    refused = "refused"
+    inquee = "iquee"
+    passed = "passed"
+    actuallypassing = "actuallypassing"
+
+
+# ---------------- MODELS ---------------- #
+
+class StatisticAgent(SQLModel, table=True):
     __tablename__ = "Statistic_Agent"
 
-    AgentID = Column(Integer, primary_key=True, index=True)
-    Inbound = Column(Boolean, nullable=False)
-    DiversionOnBusy = Column(Boolean, nullable=False)
-    DiversionOnNoAnswer = Column(Boolean, nullable=False)
-    DiversionOnAgentPaused = Column(Boolean, nullable=False)
-    OverflowNoMember = Column(Boolean, nullable=False)
-    AgentDisconnected = Column(Boolean, nullable=False)
+    StatAgendID: Optional[int] = Field(default=None, primary_key=True, index=True)
+    Inbound: bool
+    DiversionOnBusy: bool
+    DiversionOnNoAnswer: bool
+    DiversionOnAgentPaused: bool
+    OverflowNoMember: bool
+    AgentDisconnected: bool
 
-    # one-to-many: one agent → many appointments
-    appointments = relationship("Appointment", back_populates="stat_agent")
+    # one-to-many
+    appointments: List["Appointment"] = Relationship(back_populates="stat_agent")
 
 
-class Appointment(Base):
+class Appointment(SQLModel, table=True):
     __tablename__ = "Statistic_Appointment"
 
-    StatsAppointmentID = Column(Integer, primary_key=True, index=True)
-    ListID = Column(Integer, nullable=False)
-    ContactID = Column(Integer, nullable=False)
-    CallID = Column(Integer, nullable=False)
-    TimeUTC = Column(DateTime, nullable=False)
+    StatsAppointmentID: Optional[int] = Field(default=None, primary_key=True, index=True)
+    ListID: int
+    ContactID: int
+    CallID: int
+    TimeUTC: datetime
+    AppointmentTimeUTC: datetime
 
-    # foreign key to Statistic_Agent
-    AgentID = Column(Integer, ForeignKey("Statistic_Agent.AgentID"))
+    AgentID: Optional[int] = Field(default=None, foreign_key="Statistic_Agent.StatAgendID")
 
-    AppointmentOnlyForAgent = Column(Boolean, default=False)
-    AppointmentTimeUTC = Column(DateTime, nullable=False)
-    AppointmentMessage = Column(String, nullable=True)
-    AppointmentAckMessage = Column(String, nullable=True)
-    Importance = Column(Integer, nullable=True)
-    CallResult = Column(Integer, nullable=True)
-    CallSubResult = Column(Integer, nullable=True)
+    AppointmentOnlyForAgent: bool = Field(default=False)
+    AppointmentMessage: Optional[str] = None
+    AppointmentAckMessage: Optional[str] = None
+    Importance: Optional[int] = None
+    CallResult: Optional[int] = None
+    CallSubResult: Optional[int] = None
 
-    # back-reference to agent
-    stat_agent = relationship("StatisticAgent", back_populates="appointments")
+    # many-to-one
+    stat_agent: Optional[StatisticAgent] = Relationship(back_populates="appointments")
 
     def __repr__(self):
         return f"<Appointment(StatsAppointmentID={self.StatsAppointmentID}, AgentID={self.AgentID})>"
 
 
-
-class Agent(Base):
+class Agent(SQLModel, table=True):
     __tablename__ = "Agents"
 
-    AgentID = Column(Integer, primary_key=True, autoincrement=True)
-    Name = Column(String(255), nullable=True, unique=True)
-    Email = Column(String(50), nullable=True, unique=True)
-    Password = Column(String(255), nullable=False)
-    Description = Column(String(255), nullable=False)
-    Record = Column(Boolean, nullable=False)
-    MaxChatSessions = Column(Integer, nullable=False)
-    Deleted = Column(Boolean, nullable=False)
-    CreationTime = Column(DateTime, nullable=False)
-    LastModificationTime = Column(DateTime, nullable=False)
-    SoftphoneTrace = Column(Boolean, nullable=False)
-    RecordStereo = Column(Boolean, nullable=False)
-    # One-to-Many: one agent can have many settings
-    settings = relationship("AgentSettings", back_populates="agent")
+    AgentID: Optional[int] = Field(default=None, primary_key=True)
+    Name: Optional[str] = Field(default=None, max_length=255, unique=True)
+    Email: Optional[str] = Field(default=None, max_length=50, unique=True)
+    Password: str
+    Description: str
+    Record: bool
+    MaxChatSessions: int
+    Deleted: bool
+    CreationTime: datetime
+    LastModificationTime: datetime
+    SoftphoneTrace: bool
+    RecordStereo: bool
+
+    settings: List["AgentSettings"] = Relationship(back_populates="agent")
 
     def __repr__(self):
         return f"<Agent(AgentID={self.AgentID}, Email={self.Email}, Name={self.Name})>"
 
 
-
-class AgentSettings(Base):
+class AgentSettings(SQLModel, table=True):
     __tablename__ = "AgentSettings"
 
-    ID = Column(Integer, primary_key=True, autoincrement=True)
-    AgentID = Column(Integer, ForeignKey("Agents.AgentID"), nullable=False)
-    AppID = Column(Integer, nullable=False)
-    Type = Column(Integer, nullable=False)  # 1 = supervisor, 2 = enqueteur
-    Description = Column(String(50), nullable=True)
-    Value = Column(Integer, nullable=False)
-    StringValue = Column(String, nullable=True)
-    DateTimeValue = Column(DateTime, nullable=True)
+    ID: Optional[int] = Field(default=None, primary_key=True)
+    AgentID: int = Field(foreign_key="Agents.AgentID")
+    AppID: int
+    Type: int  # 1 = supervisor, 2 = enqueteur
+    Description: Optional[str] = Field(default=None, max_length=50)
+    Value: int
+    StringValue: Optional[str] = None
+    DateTimeValue: Optional[datetime] = None
 
-    agent = relationship("Agent", back_populates="settings")
+    agent: Optional[Agent] = Relationship(back_populates="settings")
 
     def __repr__(self):
         return f"<AgentSettings(ID={self.ID}, AgentID={self.AgentID}, Type={self.Type})>"
 
 
-
-class AskCalls(Base):
-    __tablename__ = "AskCall10"
-    __table_args__ = {"schema": "dbo"}   # Only schema, DB is in connection string
-
-    AskInterview = Column(Integer, primary_key=True, index=True, nullable=False)
-    AskTimeUTC = Column(DateTime, primary_key=True, index=True, nullable=False)
-    CallID = Column(Integer, nullable=False)
-    AgentID = Column(Integer, ForeignKey("dbo.AgentsLoggedOn.AgentID"), nullable=True)
-    AskState = Column(SmallInteger, nullable=True)
-
-    # One AskCalls → belongs to one AgentsLoggedOn
-    agent = relationship("AgentsLoggedOn", back_populates="calls")
-
-
-class AgentsLoggedOn(Base):
+class AgentsLoggedOn(SQLModel, table=True):
     __tablename__ = "AgentsLoggedOn"
     __table_args__ = {"schema": "dbo"}
 
-    AgentID = Column(Integer, primary_key=True, autoincrement=True)
-    OutboundTaskID = Column(Integer, nullable=True)
+    AgentID: Optional[int] = Field(default=None, primary_key=True)
+    OutboundTaskID: Optional[int] = None
 
-    # One Agent → many AskCalls
-    calls = relationship("AskCalls", back_populates="agent")
+    calls: List["AskCalls"] = Relationship(back_populates="agent")
 
     def __repr__(self):
         return f"<AgentsLoggedOn(AgentID={self.AgentID}, OutboundTaskID={self.OutboundTaskID})>"
+
+
+class AskCalls(SQLModel, table=True):
+    __tablename__ = "AskCall10"
+    __table_args__ = {"schema": "dbo"}
+
+    AskInterview: int = Field(primary_key=True, index=True)
+    AskTimeUTC: datetime = Field(primary_key=True, index=True)
+    CallID: int
+    AgentID: Optional[int] = Field(default=None, foreign_key="dbo.AgentsLoggedOn.AgentID")
+    AskState: Optional[int] = None
+
+    agent: Optional[AgentsLoggedOn] = Relationship(back_populates="calls")

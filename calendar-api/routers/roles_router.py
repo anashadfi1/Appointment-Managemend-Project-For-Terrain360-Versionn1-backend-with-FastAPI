@@ -1,48 +1,27 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session, joinedload
+from fastapi import APIRouter, Depends, HTTPException
+from sqlmodel import Session, select
 from typing import List
 
 from db_connection import get_cca_session
 from models import Agent, AgentSettings
-from schemas import AgentResponse
-from schemas import AppointmentResponse
 
-router = APIRouter(
-    prefix="/roles",
-    tags=["roles"]
-)
+router = APIRouter(prefix="/roles", tags=["Roles"])
 
 
-@router.get("/agents/", response_model=List[AgentResponse])
+@router.get("/agents/", response_model=List[Agent])
 def get_agents_by_role(role: str, db: Session = Depends(get_cca_session)):
-    """
-    Get agents filtered by role (supervisor / enqueteur).    
-    Usage:
-    - GET /roles/agents/?role=supervisor  -> Returns agents with Type=1
-    - GET /roles/agents/?role=enqueteur   -> Returns agents with Type=2
-    """
-    
-    # Map role string to numeric Type value
-    role_mapping = {
-        "supervisor": 1,
-        "enqueteur": 2
-    }
-    
-    # Validate role parameter
+    role_mapping = {"supervisor": 1, "enqueteur": 2}
     role_type = role_mapping.get(role)
+
     if not role_type:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=400,
             detail=f"Invalid role. Must be one of: {list(role_mapping.keys())}"
         )
-    
-    # Query agents with the specified role type
-    agents = (
-        db.query(Agent)
-        .join(Agent.settings)  # Ensure Agent.settings relationship exists
-        .filter(AgentSettings.Type == role_type)
-        .options(joinedload(Agent.settings))
-        .all()
+
+    statement = (
+        select(Agent)
+        .join(Agent.settings)
+        .where(AgentSettings.Type == role_type)
     )
-    
-    return agents
+    return db.exec(statement).all()

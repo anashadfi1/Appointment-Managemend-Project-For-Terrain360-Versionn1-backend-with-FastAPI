@@ -1,144 +1,165 @@
-from pydantic import BaseModel
-from enum import Enum
-from datetime import datetime
-from typing import Optional, List
+# from pydantic import BaseModel
+# from enum import Enum
+# from datetime import datetime
+# from typing import Optional, List
 
-# -----------------------------
-# ENUMS
-# -----------------------------
-class RoleEnum(str, Enum):
-    supervisor = "superviseur"
-    enqueteur = "enquêteur"
-
-
-class StateEnum(str, Enum):
-    confirmed = "confirmed"
-    refused = "refused"
-    inquee = "iquee"
-    passed = "passed"
-    actuallypassing = "actuallypassing"
+# # -----------------------------
+# # ENUMS
+# # -----------------------------
+# class RoleEnum(str, Enum):
+#     supervisor = "superviseur"
+#     enqueteur = "enquêteur"
 
 
-# -----------------------------
-# AGENT SCHEMAS
-# -----------------------------
-class AgentBase(BaseModel):
-    Name: str
+# class StateEnum(str, Enum):
+#     confirmed = "confirmed"
+#     refused = "refused"
+#     inquee = "iquee"
+#     passed = "passed"
+#     actuallypassing = "actuallypassing"
 
 
-class AgentCreate(BaseModel):
-    Name: str
-    Password: str
-    Email: Optional[str] = None
-    Description: Optional[str] = None
-    Record: bool = False
-    MaxChatSessions: int = 1
-    Deleted: bool = False
-    SoftphoneTrace: bool = False
-    RecordStereo: bool = False
+# # -----------------------------
+# # AGENT SCHEMAS
+# # -----------------------------
+# class AgentBase(BaseModel):
+#     Name: str
 
 
-class AgentRead(AgentBase):
-    AgentID: int
-    Email: Optional[str] = None
-    Description: Optional[str] = None
-    Record: bool
-    MaxChatSessions: int
-    Deleted: bool
-    CreationTime: datetime
-    LastModificationTime: datetime
-    SoftphoneTrace: bool
-    RecordStereo: bool
-
-    class Config:
-        from_attributes = True
+# class AgentCreate(BaseModel):
+#     Name: str
+#     Password: str
+#     Email: Optional[str] = None
+#     Description: Optional[str] = None
+#     Record: bool = False
+#     MaxChatSessions: int = 1
+#     Deleted: bool = False
+#     SoftphoneTrace: bool = False
+#     RecordStereo: bool = False
 
 
-class AgentResponse(BaseModel):
-    AgentID: int
-    Name: Optional[str]
-    Email: Optional[str]
+# class AgentRead(AgentBase):
+#     AgentID: int
+#     Email: Optional[str] = None
+#     Description: Optional[str] = None
+#     Record: bool
+#     MaxChatSessions: int
+#     Deleted: bool
+#     CreationTime: datetime
+#     LastModificationTime: datetime
+#     SoftphoneTrace: bool
+#     RecordStereo: bool
 
-    class Config:
-        from_attributes = True
-
-
-# -----------------------------
-# AUTH SCHEMAS
-# -----------------------------
-class LoginResponse(BaseModel):
-    access_token: str
-    token_type: str = "bearer"
-    agent: AgentRead
+#     class Config:
+#         from_attributes = True
 
 
-# -----------------------------
-# APPOINTMENT SCHEMAS
-# -----------------------------
-class AppointmentBase(BaseModel):
-    ListID: int
-    ContactID: int
-    CallID: int
-    TimeUTC: datetime
-    AgentID: int  # FK to StatisticAgent
-    AppointmentOnlyForAgent: bool
-    AppointmentTimeUTC: datetime
-    AppointmentMessage: str
-    AppointmentAckMessage: str
-    Importance: int
-    CallResult: int
-    CallSubResult: int
+# class AgentResponse(BaseModel):
+#     AgentID: int
+#     Name: Optional[str]
+#     Email: Optional[str]
+
+#     class Config:
+#         from_attributes = True
 
 
-class AppointmentResponse(AppointmentBase):
-    StatsAppointmentID: int  # PK
-    class Config:
-        from_attributes = True
+# # -----------------------------
+# # AUTH SCHEMAS
+# # -----------------------------
+# class LoginResponse(BaseModel):
+#     access_token: str
+#     token_type: str = "bearer"
+#     agent: AgentRead
 
 
-# Grouped appointments by StatisticAgent
-class AppointmentsByStatisticAgentResponse(BaseModel):
-    StatAgentID: int
-    appointments: List[AppointmentResponse]
-    class Config:
-        from_attributes = True
+# # -----------------------------
+# # APPOINTMENT SCHEMAS
+# # -----------------------------
+# # class AppointmentBase(BaseModel):
+# #     ListID: int
+# #     ContactID: int
+# #     CallID: int
+# #     TimeUTC: datetime
+# #     AgentID: int  # FK to StatisticAgent
+# #     AppointmentOnlyForAgent: bool
+# #     AppointmentTimeUTC: datetime
+# #     AppointmentMessage: str
+# #     AppointmentAckMessage: str
+# #     Importance: int
+# #     CallResult: int
+# #     CallSubResult: int
 
 
-# -----------------------------
-# AGENT SETTINGS
-# -----------------------------
-class AgentSettingsBase(BaseModel):
-    AgentID: int
-    AppID: int
-    Type: int   # 1 = supervisor, 2 = enqueteur
-    Description: Optional[str] = None
-    Value: int
-    StringValue: Optional[str] = None
-    DateTimeValue: Optional[datetime] = None
+# # class AppointmentResponse(AppointmentBase):
+# #     StatsAppointmentID: int  # PK
+# #     class Config:
+# #         from_attributes = True
+
+# # # class AppointmentListResponse(BaseModel):
+# # #     StatsAppointmentID: int
+# # #     ListID: int
+# # #     ContactID: int
+# # #     CallID: int
+# # #     TimeUTC: datetime
+# # #     AgentID: Optional[int]  # FK to StatisticAgent
+# # #     AppointmentOnlyForAgent: bool
+# # #     AppointmentTimeUTC: datetime
+# # #     Importance: Optional[int]
+# # #     CallResult: Optional[int]
+# # #     CallSubResult: Optional[int]
+
+# # #     class Config:
+# # #         from_attributes = True
 
 
-class AgentSettingsResponse(AgentSettingsBase):
-    ID: int
+# # # Detailed schema for single appointment
+# # class AppointmentDetailResponse(AppointmentListResponse):
+# #     AppointmentMessage: Optional[str]
+# #     AppointmentAckMessage: Optional[str]
 
-    class Config:
-        from_attributes = True
-
-
-# -----------------------------
-# STATISTIC AGENT SCHEMAS
-# -----------------------------
-class StatisticAgentBase(BaseModel):
-    Inbound: bool
-    DiversionOnBusy: bool
-    DiversionOnNoAnswer: bool
-    DiversionOnAgentPaused: bool
-    OverflowNoMember: bool
-    AgentDisconnected: bool
+# # # Grouped appointments by StatisticAgent
+# # class AppointmentsByStatisticAgentResponse(BaseModel):
+# #     StatAgendID: int
+# #     appointments: List[AppointmentResponse]
+# #     class Config:
+# #         from_attributes = True
 
 
-class StatisticAgentResponse(StatisticAgentBase):
-    StatAgentID: int
-    appointments: List[AppointmentResponse] = []  # One-to-Many
+# # -----------------------------
+# # AGENT SETTINGS
+# # -----------------------------
+# class AgentSettingsBase(BaseModel):
+#     AgentID: int
+#     AppID: int
+#     Type: int   # 1 = supervisor, 2 = enqueteur
+#     Description: Optional[str] = None
+#     Value: int
+#     StringValue: Optional[str] = None
+#     DateTimeValue: Optional[datetime] = None
 
-    class Config:
-        from_attributes = True
+
+# class AgentSettingsResponse(AgentSettingsBase):
+#     ID: int
+
+#     class Config:
+#         from_attributes = True
+
+
+# # -----------------------------
+# # STATISTIC AGENT SCHEMAS
+# # -----------------------------
+# class StatisticAgentBase(BaseModel):
+#     Inbound: bool
+#     DiversionOnBusy: bool
+#     DiversionOnNoAnswer: bool
+#     DiversionOnAgentPaused: bool
+#     OverflowNoMember: bool
+#     AgentDisconnected: bool
+
+
+# # class StatisticAgentResponse(StatisticAgentBase):
+# #     StatAgendID: int
+# #     appointments: List[AppointmentResponse] = []  # One-to-Many
+
+# #     class Config:
+# #         from_attributes = True
