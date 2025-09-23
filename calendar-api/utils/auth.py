@@ -82,23 +82,15 @@ def decode_access_token(token: str) -> dict:
 
 # ---------------- CURRENT USER ----------------
 def get_current_agent(token: str = Depends(oauth2_scheme), db: Session = Depends(get_cca_session)) -> Agent:
-    """
-    Get the current agent from the JWT token.
-    Dynamically attach 'role' attribute based on AgentSettings.Type.
-    """
     payload = decode_access_token(token)
     agent_id = payload.get("sub")
     if agent_id is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
     
-    agent = db.query(Agent).options(joinedload(Agent.settings)).filter(Agent.AgentID == int(agent_id)).first()
+    agent = db.query(Agent).options(joinedload(Agent.settings)) \
+        .filter(Agent.AgentID == int(agent_id)).first()
     if not agent:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
-    
-    # Map Type -> role string
-    role_map = {1: "supervisor", 2: "enqueteur"}
-    first_setting = next(iter(agent.settings), None)
-    agent.role = role_map.get(first_setting.Type) if first_setting else None
     
     return agent
 
@@ -112,10 +104,13 @@ def get_role_name(role_type: int) -> str:
 def require_role(allowed_roles: list[str]):
     """
     Dependency for role-based access control.
-    Checks the role embedded in JWT payload.
+    Checks the role based on AgentSettings.Type.
     """
     def role_checker(agent: Agent = Depends(get_current_agent)):
-        if agent.role not in allowed_roles:
+        role_map = {1: "supervisor", 2: "enqueteur"}
+        role = role_map.get(agent.settings.Type) if agent.settings else None
+
+        if role not in allowed_roles:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Not enough privileges",

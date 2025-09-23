@@ -63,6 +63,7 @@ class Appointment(SQLModel, table=True):
         return f"<Appointment(StatsAppointmentID={self.StatsAppointmentID}, AgentID={self.AgentID})>"
 
 
+# models.py
 class Agent(SQLModel, table=True):
     __tablename__ = "Agents"
 
@@ -79,10 +80,9 @@ class Agent(SQLModel, table=True):
     SoftphoneTrace: bool
     RecordStereo: bool
 
-    settings: List["AgentSettings"] = Relationship(back_populates="agent")
-
-    def __repr__(self):
-        return f"<Agent(AgentID={self.AgentID}, Email={self.Email}, Name={self.Name})>"
+    settings: Optional["AgentSettings"] = Relationship(
+        back_populates="agent", sa_relationship_kwargs={"uselist": False}  # ← key for one-to-one
+    )
 
 
 class AgentSettings(SQLModel, table=True):
@@ -90,8 +90,7 @@ class AgentSettings(SQLModel, table=True):
 
     ID: Optional[int] = Field(default=None, primary_key=True)
     AgentID: int = Field(foreign_key="Agents.AgentID")
-    AppID: int
-    Type: int  # 1 = supervisor, 2 = enqueteur
+    Type: int  
     Description: Optional[str] = Field(default=None, max_length=50)
     Value: int
     StringValue: Optional[str] = None
@@ -99,8 +98,7 @@ class AgentSettings(SQLModel, table=True):
 
     agent: Optional[Agent] = Relationship(back_populates="settings")
 
-    def __repr__(self):
-        return f"<AgentSettings(ID={self.ID}, AgentID={self.AgentID}, Type={self.Type})>"
+
 
 
 class AgentsLoggedOn(SQLModel, table=True):

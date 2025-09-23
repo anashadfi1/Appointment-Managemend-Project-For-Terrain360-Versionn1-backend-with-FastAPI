@@ -10,7 +10,9 @@ router = APIRouter(prefix="/appointments", tags=["Appointments"])
 
 @router.get("/", response_model=List[Appointment])
 def list_appointments(db: Session = Depends(get_statistics_session)):
-    return db.exec(select(Appointment)).all()
+    appointments = db.exec(select(Appointment).limit(10)).all()
+    # Exclude the relationship to prevent recursion
+    return [a.dict(exclude={"stat_agent"}) for a in appointments]
 
 
 @router.get("/{appointment_id}", response_model=Appointment)

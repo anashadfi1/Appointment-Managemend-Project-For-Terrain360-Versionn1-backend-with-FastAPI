@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlmodel import Session, select
+from sqlmodel import Session
 
 from db_connection import get_cca_session
 from models import Agent
@@ -22,9 +22,9 @@ def login(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
+    # One-to-one, so access settings directly
     role_map = {1: "supervisor", 2: "enqueteur"}
-    role_setting = next(iter(user.settings), None)
-    role = role_map.get(role_setting.Type) if role_setting else None
+    role = role_map.get(user.settings.Type) if user.settings else None
 
     access_token = create_access_token(
         data={"sub": str(user.AgentID), "username": user.Name, "role": role}
@@ -42,7 +42,17 @@ def login(
 
 @router.get("/me")
 def read_current_agent(current_agent: Agent = Depends(get_current_agent)):
-    return current_agent
+    # Return a clean dict to avoid serialization issues
+    agent_data = {
+        "agent_id": current_agent.AgentID,
+        "name": current_agent.Name,
+        "email": current_agent.Email,
+        "role": None
+    }
+    if current_agent.settings:
+        agent_data["role"] = "supervisor" if current_agent.settings.Type == 1 else "enqueteur"
+
+    return agent_data
 
 
 @router.get("/supervisor-only", dependencies=[Depends(require_role(["supervisor"]))])
